@@ -1,13 +1,17 @@
 import os.path
-
+import redis
 from datashape import null
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 from main import record_search_log, statistic, findMidWords, findCompWords, calculateComp
 
 app = Flask(__name__)
+num = redis.Redis(host='localhost', port=6379, db=11, decode_responses=True)
+num.set('count', 0)
 CORS(app, resources=r'/*')
-
+r = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+for i in range(10):
+    r[i] = redis.Redis(host='localhost', port=6379, db=i, decode_responses=True)
 
 @app.route('/')
 def hello_world():  # put application's code here
@@ -45,6 +49,23 @@ def forCompKey():
                 result[count] = line
                 count += 1
     print(result)
+    a = int(num.get('count'))
+    # a是用户不重复搜索种子关键词的次数
+    print(a)
+    b = 0
+    # b等于1就说明数据库中有该种子关键词了，不存入
+    for j in range(a):
+        print(r[j].get('seedWord'))
+        if r[j].get('seedWord') == seedWord:
+            b = 1
+            break
+
+    if b != 1:
+        if r[a].get('seedWord') != seedWord:
+            r[a].set('seedWord', seedWord)
+            a = int(num.get('count')) + 1
+
+    num.set('count', a)
     return jsonify({"success": 'success', "msg": "请求成功", "data": result})
 
 # @app.route('/search', methods=['GET'])
