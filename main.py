@@ -53,11 +53,9 @@ def record_search_log(seed_word):
     # 判断是否不包含种子关键字
     is_contain = False
     # 判断是否包含种子关键字
-    for line in processed_data:
+    for line in processed_data.readlines():
         # 逐行读入将，去掉换行
         value_line = line
-        value_line.replace("\t", "")
-        value_line.replace("\n", "")
         # 如果找到了种子关键词则为成功
         if seed_word in value_line:
             is_contain = True
@@ -253,7 +251,7 @@ def processComp(s, seed_word, k_word, a_log, processed_search_log, comp_rank, pr
 
     with processLock:
         comp_rank[k_word] = comp_k
-    return
+    return comp_rank
 
 
 # compKey算法结束
@@ -265,44 +263,57 @@ def forCompKey(seed_word):
     # 统计搜索记录
     seedWord = seed_word
     # starts = time.time() # 统计时间
-    if record_search_log(seed_word=seedWord):
-        # ends = time.time() # 统计时间
-        # step_array.append("提取搜索记录") # 统计时间
-        # step_cost.append(ends-starts) # 统计时间
+    data_relate = './datas/SeedWordSearchLog/' + seed_word + ".txt"
+    result = {}
+    if not os.path.exists(data_relate):
+        if record_search_log(seed_word=seedWord):
+            # ends = time.time() # 统计时间
+            # step_array.append("提取搜索记录") # 统计时间
+            # step_cost.append(ends-starts) # 统计时间
 
-        # 根据统计的搜索记录进行分词、词频统计
+            # 根据统计的搜索记录进行分词、词频统计
 
-        # starts = time.time()  # 统计时间
-        wordSearchLog = './datas/SeedWordSearchLog/' + seedWord + '.txt'
-        wordApartFile = './datas/WordApartFile/' + seedWord + '_apart.txt'
-        wordStatistics = './datas/WordStatistics/' + seedWord + '_statistics.txt'
-        statistic(word_searching_log=wordSearchLog, word_apart_file=wordApartFile, word_statistics=wordStatistics)
-        # ends = time.time()  # 统计时间
-        # step_array.append("统计词频")  # 统计时间
-        # step_cost.append(ends - starts)  # 统计时间
+            # starts = time.time()  # 统计时间
+            wordSearchLog = './datas/SeedWordSearchLog/' + seedWord + '.txt'
+            wordApartFile = './datas/WordApartFile/' + seedWord + '_apart.txt'
+            wordStatistics = './datas/WordStatistics/' + seedWord + '_statistics.txt'
+            statistic(word_searching_log=wordSearchLog, word_apart_file=wordApartFile, word_statistics=wordStatistics)
+            # ends = time.time()  # 统计时间
+            # step_array.append("统计词频")  # 统计时间
+            # step_cost.append(ends - starts)  # 统计时间
 
-        # starts = time.time()  # 统计时间
-        midWord = './datas/MidWord/' + seedWord + '_midWord.txt'
-        findMidWords(seed_word=seedWord, word_mid=midWord)
-        # ends = time.time()  # 统计时间
-        # step_array.append("提取中介关键词")  # 统计时间
-        # step_cost.append(ends - starts)  # 统计时间
+            # starts = time.time()  # 统计时间
+            midWord = './datas/MidWord/' + seedWord + '_midWord.txt'
+            findMidWords(seed_word=seedWord, word_mid=midWord)
+            # ends = time.time()  # 统计时间
+            # step_array.append("提取中介关键词")  # 统计时间
+            # step_cost.append(ends - starts)  # 统计时间
 
-        # starts = time.time()  # 统计时间
-        compWord = './datas/CompWord/' + seedWord + '_compWord.txt'
-        findCompWords(seed_word=seedWord, word_comp=compWord)
-        # ends = time.time()  # 统计时间
-        # step_array.append("提取竞争关键词")  # 统计时间
-        # step_cost.append(ends - starts)  # 统计时间
+            # starts = time.time()  # 统计时间
+            compWord = './datas/CompWord/' + seedWord + '_compWord.txt'
+            findCompWords(seed_word=seedWord, word_comp=compWord)
+            # ends = time.time()  # 统计时间
+            # step_array.append("提取竞争关键词")  # 统计时间
+            # step_cost.append(ends - starts)  # 统计时间
 
-        # starts = time.time()  # 统计时间
-        compResult = './datas/Result/' + seedWord + '_result.txt'
-        calculateComp(seed_word=seedWord, comp_result=compResult)
-        # ends = time.time()  # 统计时间
-        # step_array.append("计算竞争度")  # 统计时间
-        # step_cost.append(ends - starts)  # 统计时间
+            # starts = time.time()  # 统计时间
+            compResult = './datas/Result/' + seedWord + '_result.txt'
+            result = calculateComp(seed_word=seedWord, comp_result=compResult)
+            # ends = time.time()  # 统计时间
+            # step_array.append("计算竞争度")  # 统计时间
+            # step_cost.append(ends - starts)  # 统计时间
+            return result
+        else:
+            print('传入的关键词', seedWord, '无搜索记录')
     else:
-        print('传入的关键词', seedWord, '无搜索记录')
+        compResult = './datas/Result/' + seedWord + '_result.txt'
+        count = 0
+        with open(compResult, 'r', encoding='utf-8') as file:
+            for line in file:
+                result[count] = line
+                count += 1
+        return result
+
 
 
 if __name__ == "__main__":
@@ -323,12 +334,27 @@ if __name__ == "__main__":
     time_array = []  # 统计各词用时
     # step_array = []
     # step_cost = []
+    final_result = {}
     for items in seed_word_array:
         start = time.time()
-        forCompKey(items)
+        final_result[items] = forCompKey(items)
         end = time.time()
         print('用时', end - start, '秒')
         time_array.append(end - start)
+    # 新建一个列表存放提取后的元组
+    comp_rank_tuples = []
+
+    # 遍历原始字典
+    for seed_keyword, comp_list in final_result.items():
+        # 遍历每个竞争关键词的竞争度
+        for idx, item in comp_list.items():
+            # 提取种子关键词、竞争关键词和竞争度，组成元组
+            comp_values = (seed_keyword, item.split(' ')[0], float(item.split(':')[1]))
+            # 将元组存入新的列表
+            comp_rank_tuples.append(comp_values)
+
+    # 输出结果
+    print(comp_rank_tuples)
 
     # plt.rcParams['font.sans-serif'] = ['SimHei']  # 用来正常显示中文标签（中文乱码问题）
     # plt.bar(seed_word_array, time_array)
