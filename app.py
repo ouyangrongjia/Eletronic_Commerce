@@ -37,7 +37,14 @@ def forCompKey():
             compWord = './datas/CompWord/' + seedWord + '_compWord.txt'
             findCompWords(seed_word=seedWord, word_comp=compWord)
             compResult = './datas/Result/' + seedWord + '_result.txt'
-            result = calculateComp(seed_word=seedWord, comp_result=compResult)
+            calculateComp(seed_word=seedWord, comp_result=compResult)
+            count = 0
+
+            with open(compResult, 'r', encoding='utf-8') as file:
+                for line in file:
+                    result[count] = line
+                    count += 1
+
             return jsonify({"success": 'success', "msg": "请求成功", "data": result})
         else:
             return jsonify({"error": 'error', "msg": "请求失败，输入关键词没有相关搜索记录"})
@@ -48,14 +55,13 @@ def forCompKey():
             for line in file:
                 result[count] = line
                 count += 1
-    print(result)
+    print(result[0])
     a = int(num.get('count'))
     # a是用户不重复搜索种子关键词的次数
-    print(a)
+    print(result)
     b = 0
     # b等于1就说明数据库中有该种子关键词了，不存入
     for j in range(a):
-        print(r[j].get('seedWord'))
         if r[j].get('seedWord') == seedWord:
             b = 1
             break
@@ -63,6 +69,9 @@ def forCompKey():
     if b != 1:
         if r[a].get('seedWord') != seedWord:
             r[a].set('seedWord', seedWord)
+            r[a].delete('compWord')
+            for i in range(10):
+                r[a].append('compWord', result[i])
             a = int(num.get('count')) + 1
 
     num.set('count', a)

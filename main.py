@@ -222,7 +222,7 @@ def calculateComp(seed_word, comp_result):
     # 竞争度排序
     comp_ranked = sorted(comp_rank.items(), key=lambda x: x[1], reverse=True)
     for item in comp_ranked:
-        comp_result_file.write((str(item[0]) + ' comp:' + str(item[1])))
+        comp_result_file.write((str(item[0]) + ' ' + str(item[1])))
         comp_result_file.write('\n')
     print(seed_word, '竞争性关键词comp测度计算完毕')
     return comp_ranked

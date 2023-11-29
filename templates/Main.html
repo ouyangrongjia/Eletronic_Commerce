@@ -19,10 +19,11 @@
 
 </body>
 <script>
-    function getSearchResult(){
+    async function getSearchResult(){
         let seed_word = $('#search_input').val()
         console.log('获取种子关键词' + seed_word + '相关搜索中')
-        $.ajax({
+        try{
+            await $.ajax({
             type:'GET',
             url:'http://localhost:5000/getResult',
             data: {'seed_word':seed_word},
@@ -30,12 +31,12 @@
             crossDomain: true,
             success: function (result) {
                 console.log(result)
-                console.log(result.data)
+                console.log(result)
                 let x = []
                 let y = []
                 for(let i = 0; i < 10; i++){
                     x[i] = result.data[i].split(' ')[0]
-                    y[i] = result.data[i].split(':')[1] * 100
+                    y[i] = result.data[i].split(' ')[1] * 100
                 }
                 console.log(x)
                 console.log(y)
@@ -59,8 +60,8 @@
                         trigger: 'axis', //坐标轴触发，主要在柱状图，折线图等会使用类目轴的图表中使用
                         axisPointer: {// 坐标轴指示器，坐标轴触发有效
                             type: 'shadow' // 默认为直线，可选为：'line' | 'shadow'
-                     }
-            },
+                        }
+                    },
                 }
                 searchResultChart.setOption(option)
             },
@@ -69,7 +70,11 @@
             },
 
         })
+        } catch (e){
+            console.log(e)
+        }
     }
+
 </script>
 <style>
     #search_form
