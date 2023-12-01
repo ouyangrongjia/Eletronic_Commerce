@@ -4,21 +4,31 @@
     <script src="https://code.jquery.com/jquery-3.0.0.min.js"></script>
     <script src="https://cdn.staticfile.org/echarts/4.3.0/echarts.min.js"></script>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>竞争词推荐系统</title>
 </head>
 <body>
-    <div>
+<div id="main_form">
         <form id="search_form">
-            <input type="text" placeholder="请输入你的搜索关键词" id="search_input" name="seed_word">
+            <input type="text" placeholder="请输入种子关键词" id="search_input" name="seed_word">
             <input type="button" value="搜索" id="search_button" onclick="getSearchResult()">
         </form>
-    </div>
-    <div style="width: 600px; height: 400px; margin-top:100px; margin-left:100px" id="chart">
 
-    </div>
+    <table id="search_results">
+        <thead>
+        <tr>
+            <th>关键词</th>
+            <th>竞争度</th>
+            <th>推荐评级</th>
+        </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
 
 </body>
 <script>
+    var a=[0,0,0,0,0,0,0,0,0,0]
+
     async function getSearchResult(){
         let seed_word = $('#search_input').val()
         console.log('获取种子关键词' + seed_word + '相关搜索中')
@@ -40,58 +50,190 @@
                 }
                 console.log(x)
                 console.log(y)
-                let searchResultChart = echarts.init(document.getElementById('chart'))
-                let option = {
-                    title:{
-                        text: '关键词  ' + seed_word + '  的竞争关键词'
-                    },
-                    xAxis: {
-                        type: "category",
-                        data: x
-                    },
-                    yAxis: {
-                        type: "value"
-                    },
-                    series: {
-                        type: "bar",
-                        data: y
-                    },
-                    tooltip: {
-                        trigger: 'axis', //坐标轴触发，主要在柱状图，折线图等会使用类目轴的图表中使用
-                        axisPointer: {// 坐标轴指示器，坐标轴触发有效
-                            type: 'shadow' // 默认为直线，可选为：'line' | 'shadow'
+                // 获取表格的tbody部分
+                let tbody = document.querySelector('#search_results tbody');
+                tbody.innerHTML = ''; // 清空表格
+
+                // 填充数据到表格中，包括评级按钮
+                for (let i = 0; i < x.length; i++) {
+                    let row = document.createElement('tr');
+
+                    // 创建表格单元格并填充数据
+                    let cell1 = document.createElement('td');
+                    cell1.textContent = x[i];
+                    let cell2 = document.createElement('td');
+                    cell2.textContent = y[i];
+
+                    // 创建评级按钮单元格
+                    let cell3 = document.createElement('td');
+                    let ratingButtons = document.createElement('div');
+                    ratingButtons.classList.add('rating-buttons');
+
+                    let button1 = document.createElement('button');
+                    button1.textContent = '低';
+                    let button2 = document.createElement('button');
+                    button2.textContent = '中';
+                    let button3 = document.createElement('button');
+                    button3.textContent = '高';
+
+                    button1.addEventListener('click', function() {
+                        if(a[i]){
+                            alert('此竞争词已经评价！')
+                        }else{
+                            returnEvaluateResult(seed_word,x[i], y[i],'低',i);
                         }
-                    },
+                    });
+                    button2.addEventListener('click', function() {
+                        if(a[i]){
+                            alert('此竞争词已经评价！')
+                        }else{
+                            returnEvaluateResult(seed_word,x[i], y[i],'中',i);
+                        }
+                    });
+                    button3.addEventListener('click', function() {
+                        if(a[i]){
+                            alert('此竞争词已经评价！')
+                        }else{
+                            returnEvaluateResult(seed_word,x[i], y[i],'高',i);
+                        }
+                    });
+
+                    ratingButtons.appendChild(button1);
+                    ratingButtons.appendChild(button2);
+                    ratingButtons.appendChild(button3);
+                    cell3.appendChild(ratingButtons);
+
+                    // 将单元格添加到行中
+                    row.appendChild(cell1);
+                    row.appendChild(cell2);
+                    row.appendChild(cell3);
+
+                    // 将行添加到表格的tbody中
+                    tbody.appendChild(row);
                 }
-                searchResultChart.setOption(option)
             },
             error: function (e) {
                 alert('该种子关键词不存在相关搜索!')
-            },
-
+            }
         })
         } catch (e){
             console.log(e)
         }
     }
 
+    async function returnEvaluateResult(seedWord,compWord,compKey,evaluateRank,i){
+        if(evaluateRank == '中'){
+            compKey*=0.95;
+        }else if(evaluateRank == '低'){
+            compKey*=0.9;
+        }
+        try{
+            await $.ajax({
+                type:'PUT',
+                url:'http://localhost:5000/returnEvaluateResult',
+                data: {'seed_word':seedWord,'comp_word':compWord,'comp_key':compKey},
+                dataType: 'json',
+                crossDomain: true,
+                success: function (result) {
+                    a[i]=1;
+                    alert('评价成功，感谢您的评价！');
+                },
+                error: function (e) {
+                    alert('评价失败，请重试!');
+                },
+            })
+            } catch (e){
+                console.log(e)
+            }
+        }
 </script>
 <style>
-    #search_form
-    {
-        width: 500px;
-        height: 100px;
-    }
-    #search_input
-    {
-        margin-top: 20%;
-        width: 300px;
-        height: 25px;
-    }
-    #search_button
-    {
-        width: 50px;
-        height: 25px;
-    }
+    body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+    margin: 0;
+    padding: 0;
+}
+
+#main_form {
+    width: 70%;
+    max-width: 600px;
+    margin: 50px auto;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+#search_form {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+#search_input {
+    flex: 1;
+    height: 35px;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    outline: none;
+}
+
+#search_button {
+    width: 100px;
+    height: 35px;
+    border: none;
+    border-radius: 5px;
+    background-color: #4caf50;
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#search_button:hover {
+    background-color: #45a049;
+}
+
+#search_results {
+    margin: 0 auto;
+    width: 70%;
+    border-collapse: collapse;
+    background-color: #fff;
+}
+
+#search_results th,
+#search_results td {
+    padding: 10px;
+    border: 1px solid #ddd;
+    text-align: left;
+}
+
+#search_results th {
+    background-color: #f2f2f2;
+}
+
+.rating-buttons {
+    display: flex;
+    gap: 5px;
+    margin-top: 5px;
+}
+
+.rating-buttons button {
+    padding: 5px 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #4caf50;
+    color: #fff;
+    cursor: pointer;
+}
+
+.rating-buttons button:hover {
+    background-color: #45a049;
+}
+
+
 </style>
 </html>

@@ -77,6 +77,14 @@ def forCompKey():
     num.set('count', a)
     return jsonify({"success": 'success', "msg": "请求成功", "data": result})
 
+
+@app.route('/returnEvaluateResult', methods=['PUT'])
+def update_comp_key():
+    seed_word = str(request.args.get('seed_word'))
+    comp_word = str(request.args.get('comp_word'))
+    comp_key = str(request.args.get('comp_key'))
+    return jsonify({"success": 'success', "msg": "请求成功"})
+
 # @app.route('/search', methods=['GET'])
 # def search_by_seed_word():
 #     seed_word = str(request.args.get('seed_word'))
