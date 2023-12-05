@@ -247,10 +247,10 @@ def processComp(s, seed_word, k_word, a_log, processed_search_log, comp_rank, pr
         for search_line in processed_search_log:
             if a_word in search_line:
                 a = a + 1
-            if (a_word in search_line) and (seed_word in search_line):
-                sa = sa + 1
-            if (a_word in search_line) and (k_word in search_line):
-                ka = ka + 1
+                if (seed_word in search_line):
+                    sa = sa + 1
+                if (k_word in search_line):
+                    ka = ka + 1
         # compKey算法
         wak = sa / s
         comp_k += wak * (ka / (a - sa))
@@ -351,7 +351,7 @@ if __name__ == "__main__":
         # 遍历每个竞争关键词的竞争度
         for idx, item in comp_list.items():
             # 提取种子关键词、竞争关键词和竞争度，组成元组
-            comp_values = (seed_keyword, item.split(' ')[0], float(item.split(':')[1]))
+            comp_values = (seed_keyword, item.split(' ')[0], float(item.split(' ')[1]))
             # 将元组存入新的列表
             comp_rank_tuples.append(comp_values)
 

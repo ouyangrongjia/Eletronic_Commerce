@@ -161,19 +161,16 @@
     }
 
     async function returnEvaluateResult(seedWord,compWord,compKey,evaluateRank,i){
-        if(evaluateRank == '中'){
-            compKey*=0.95;
-        }else if(evaluateRank == '低'){
-            compKey*=0.9;
-        }
+        console.log(compWord)
         try{
-            await $.ajax({
-                type:'PUT',
+             $.ajax({
+                type:'GET',
                 url:'http://localhost:5000/returnEvaluateResult',
-                data: {'seed_word':seedWord,'comp_word':compWord,'comp_key':compKey},
+                data: {'seed_word':seedWord,'comp_word':compWord,'comp_key':compKey,'evaluate_rank':evaluateRank},
                 dataType: 'json',
                 crossDomain: true,
                 success: function (result) {
+                    console.log(result)
                     a[i]=1;
                     alert('评价成功，感谢您的评价！');
                 },
