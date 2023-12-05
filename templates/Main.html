@@ -7,29 +7,68 @@
     <title>竞争词推荐系统</title>
 </head>
 <body>
+<div class="loader" id="loader" style="display: none;"></div>
 <div id="main_form">
-        <form id="search_form">
-            <input type="text" placeholder="请输入种子关键词" id="search_input" name="seed_word">
-            <input type="button" value="搜索" id="search_button" onclick="getSearchResult()">
-        </form>
+        <div class="flex-container">
+            <div class="search-container">
+                <!-- 搜索表单 -->
+                <form id="search_form">
+                    <input type="text" placeholder="请输入种子关键词" id="search_input" name="seed_word">
+                    <input type="button" value="搜索" id="search_button" onclick="getSearchResult()">
+                </form>
+                <!-- 搜索结果 -->
+                    <table id="search_results">
+                        <thead>
+                            <tr>
+                                <th>关键词</th>
+                                <th>竞争度</th>
+                                <th>请对推荐词进行评价</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+            </div>
+            <div id="hot_keywords">
+                <a>热搜词条</a>
+                <!-- 热搜词条 -->
 
-    <table id="search_results">
-        <thead>
-        <tr>
-            <th>关键词</th>
-            <th>竞争度</th>
-            <th>推荐评级</th>
-        </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
-</div>
+            </div>
+        </div>
+    </div>
+
+<!--<div id="main_form">-->
+<!--        <form id="search_form">-->
+<!--            <input type="text" placeholder="请输入种子关键词" id="search_input" name="seed_word">-->
+<!--            <input type="button" value="搜索" id="search_button" onclick="getSearchResult()">-->
+<!--        </form>-->
+<!--        &lt;!&ndash; 热搜词条展示块 &ndash;&gt;-->
+<!--        <div id="hot_keywords">-->
+<!--            &lt;!&ndash; 这里将填充热搜词条数据 &ndash;&gt;-->
+<!--        </div>-->
+
+<!--    <table id="search_results">-->
+<!--        <thead>-->
+<!--        <tr>-->
+<!--            <th>关键词</th>-->
+<!--            <th>竞争度</th>-->
+<!--            <th>请对推荐词进行评价</th>-->
+<!--        </tr>-->
+<!--        </thead>-->
+<!--        <tbody></tbody>-->
+<!--    </table>-->
+<!--</div>-->
 
 </body>
 <script>
     var a=[0,0,0,0,0,0,0,0,0,0]
 
+    // 页面加载完成后执行的函数
+    window.onload = async function () {
+         await getHotKeywords();
+        };
     async function getSearchResult(){
+        // 显示加载动画
+        document.getElementById('loader').style.display = 'block';
         let seed_word = $('#search_input').val()
         console.log('获取种子关键词' + seed_word + '相关搜索中')
         try{
@@ -48,8 +87,6 @@
                     x[i] = result.data[i].split(' ')[0]
                     y[i] = result.data[i].split(' ')[1] * 100
                 }
-                console.log(x)
-                console.log(y)
                 // 获取表格的tbody部分
                 let tbody = document.querySelector('#search_results tbody');
                 tbody.innerHTML = ''; // 清空表格
@@ -111,9 +148,11 @@
                     // 将行添加到表格的tbody中
                     tbody.appendChild(row);
                 }
+                document.getElementById('loader').style.display = 'none';
             },
             error: function (e) {
                 alert('该种子关键词不存在相关搜索!')
+                document.getElementById('loader').style.display = 'none';
             }
         })
         } catch (e){
@@ -142,13 +181,57 @@
                     alert('评价失败，请重试!');
                 },
             })
-            } catch (e){
+        } catch (e){
                 console.log(e)
+            }
+    }
+
+    // 获取热搜词条数据并填充展示块
+        async function getHotKeywords() {
+            try {
+                const hotKeywords = await $.ajax({
+                    type: 'GET',
+                    url: 'http://localhost:5000/getHotKeywords',
+                    dataType: 'json',
+                    crossDomain: true,
+                });
+                console.log(hotKeywords);
+                // 获取热搜词条展示容器
+                const hotKeywordsContainer = document.getElementById('hot_keywords');
+
+                // 填充热搜词条数据到展示容器中
+                hotKeywords.data.forEach(keyword => {
+                    const keywordElement = document.createElement('p');
+                    keywordElement.textContent = keyword;
+                    keywordElement.addEventListener('click', function() {
+                    // 点击热搜词条直接执行搜索
+                    document.getElementById('search_input').value = keyword;
+                    getSearchResult();
+                    });
+                    hotKeywordsContainer.appendChild(keywordElement);
+                });
+            } catch (e) {
+                console.log(e);
             }
         }
 </script>
 <style>
-    body {
+/* 加载动画样式 */
+.loader {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    animation: spin 2s linear infinite;
+    margin: 20px auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+body {
     font-family: Arial, sans-serif;
     background-color: #f0f0f0;
     margin: 0;
@@ -157,13 +240,14 @@
 
 #main_form {
     width: 70%;
-    max-width: 600px;
+    max-width: 1000px;
     margin: 50px auto;
-    background-color: #fff;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
 }
+
 
 #search_form {
     display: flex;
@@ -214,6 +298,9 @@
 #search_results th {
     background-color: #f2f2f2;
 }
+.search-container {
+    width: 65%;
+}
 
 .rating-buttons {
     display: flex;
@@ -234,6 +321,30 @@
     background-color: #45a049;
 }
 
+#hot_keywords {
+    width: 30%;
+    height:80%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #fff;
+    margin-top: 20px;
+}
+.flex-container {
+    display: flex;
+    justify-content: space-between;
+}
+#hot_keywords p {
+    margin: 5px 0;
+    padding: 8px 12px;
+    background-color: #f2f2f2;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
 
+#hot_keywords p:hover {
+    background-color: #e0e0e0;
+}
 </style>
 </html>

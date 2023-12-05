@@ -5,8 +5,15 @@ import multiprocessing
 import time
 import matplotlib.pyplot as plt
 
+# 定义停用词
+stop_words = set()
+with open('./datas/StopWords/baidu_stopwords.txt', 'r', encoding='utf-8') as file:
+    for line in file:
+        stop_words.add(line.strip())
 
-# 读取日志，提取搜索记录
+# 变量锁
+lock = multiprocessing.Lock()
+
 def log_to_file(origin_file_path, process_file_path):
     file_list = os.listdir(origin_file_path)
     print(file_list)
@@ -320,17 +327,12 @@ if __name__ == "__main__":
     # 读取日志并提取搜索记录处理数据
     log_to_file('./datas/Sogou', './datas/ProcessedData/ProcessedData.txt')
 
-    # 定义停用词
-    stop_words = set()
-    with open('./datas/StopWords/baidu_stopwords.txt', 'r', encoding='utf-8') as file:
-        for line in file:
-            stop_words.add(line.strip())
 
-    # 变量锁
-    lock = multiprocessing.Lock()
 
-    seed_word_array = ['英雄', '王者荣耀', 'qq', '微信', '阴阳师', '湖南', '陕西', '公务员', '白金', '篮球']
-    # seed_word_array = ['英雄']
+
+
+    # seed_word_array = ['英雄', '王者荣耀', 'qq', '微信', '阴阳师', '湖南', '陕西', '公务员', '白金', '篮球']
+    seed_word_array = ['互联网']
     time_array = []  # 统计各词用时
     # step_array = []
     # step_cost = []

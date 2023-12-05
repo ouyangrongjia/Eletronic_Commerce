@@ -85,6 +85,18 @@ def update_comp_key():
     comp_key = str(request.args.get('comp_key'))
     return jsonify({"success": 'success', "msg": "请求成功"})
 
+
+@app.route('/getHotKeywords', methods=['GET'])
+def get_hot_keywords():
+    result = []
+    i = 0
+    with open("./datas/HotKeyWord/hotkeywords.txt", "r", encoding='utf-8') as hot_key_words:
+        for line in hot_key_words.readlines():
+            if i < 10:
+                result.append(line.strip().split(":")[0])  # Using strip() to remove leading/trailing whitespaces
+                i += 1
+    return jsonify({"success": 'success', "msg": "请求成功", "data": result})
+
 # @app.route('/search', methods=['GET'])
 # def search_by_seed_word():
 #     seed_word = str(request.args.get('seed_word'))
